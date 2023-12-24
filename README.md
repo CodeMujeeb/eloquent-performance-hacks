@@ -74,3 +74,30 @@ User::query()->withLastLoginAt()->orderBy('name')->paginate(10);
 
 ```For better code organization and reusability, move the subquery logic to a scope in the model. This allows you to call withLastLoginAt() on the query builder.```
 
+### Dynamic Relationships Using Subqueries
+
+In our quest for optimizing dynamic relationships with Laravel Eloquent, we encountered a limitation with the previous approach. The need to repeatedly create scopes for various columns from the login table, such as IP address, led us to seek a more versatile solution.
+##### Introducing BelongsTo Relationship
+
+To address this challenge, we've established a belongsTo relationship in the User model pointing to the Login model. This type of relationship typically requires a foreign key column, like last_login_id in the users table. However, since we don't have such a column, we leverage the power of subqueries to dynamically select the appropriate value.
+```php
+public function lastLogin()
+{
+    return $this->belongsTo(Login::class);
+}
+```
+### Dynamic Subquery Scope
+
+To encapsulate this dynamic relationship creation, we've replaced the previous scope with a more flexible approach. The scopeWithLastLogin now incorporates a subquery to automatically load the lastlogin relationship when the scope is invoked.
+```php
+public function scopeWithLastLogin($query)
+{
+    $query->addSelect(['last_login_id' => Login::select('id')
+        ->whereColumn('user_id', 'users.id')
+        ->latest()
+        ->take(1)
+    ])->with('lastlogin');
+}
+```
+Now, utilizing this scope is as simple as calling User::query()->withLastLogin() in your queries.
+

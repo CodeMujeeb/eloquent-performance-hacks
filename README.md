@@ -29,6 +29,7 @@ Eager loading can be used to address the N+1 issue. By utilizing the `with` meth
 
 ```php
 $user->last_logins->latest()->first()->created_at->diffForHumans()
+```
 
 ## Issue: Excessive Database Queries
 
